@@ -118,14 +118,13 @@ classdef qoco < handle
             end
             q = q(:);
             
-            
             %
             % Check vector dimensions
-            %
-            
+            %            
             assert(length(b) == p, 'Incorrect dimension of b');
             assert(length(h) == m, 'Incorrect dimension of h');
             assert(length(q) == nsoc, 'Incorrect dimension of q');
+            assert(sum(q) + l == m, 'sum(q) + l must be m');
             
             %make a settings structure from the remainder of the arguments.
             %'true' means that this is a settings initialization, so all

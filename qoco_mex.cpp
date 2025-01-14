@@ -226,7 +226,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     QOCOCscMatrix *Acsc = new QOCOCscMatrix;
     QOCOInt *Ap = copyToCintVector(mxGetJc(A), n + 1);
     QOCOInt *Ai = copyToCintVector(mxGetIr(A), Ap[n]);
-    QOCOFloat *Ax = copyToCfloatVector(mxGetPr(P), Ap[n]);
+    QOCOFloat *Ax = copyToCfloatVector(mxGetPr(A), Ap[n]);
     qoco_set_csc(Acsc, p, n, Ap[n], Ax, Ap, Ai);
 
     // Matrix G: nnz = G->p[n]
@@ -252,13 +252,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     // Setup solver.
     qocoData->solver = new QOCOSolver;
     exitflag = qoco_setup(qocoData->solver, n, m, p, Pcsc, cvec, Acsc, bvec, Gcsc, hvec, l, nsoc, qvec, settings);
-
-    std::cout << "n: " << n << std::endl;
-    std::cout << "m: " << m << std::endl;
-    std::cout << "p: " << p << std::endl;
-    std::cout << "l: " << l << std::endl;
-    std::cout << "nsoc: " << nsoc << std::endl;
-    std::cout << "q: " << qvec[0] << ", " << qvec[1] << std::endl;
 
     // cleanup temporary structures
     if (cvec)
