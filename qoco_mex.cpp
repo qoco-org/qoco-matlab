@@ -235,27 +235,23 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     QOCOInt *Gi = copyToCintVector(mxGetIr(G), Gp[n]);
     QOCOFloat *Gx = copyToCfloatVector(mxGetPr(G), Gp[n]);
     qoco_set_csc(Gcsc, m, n, Gp[n], Gx, Gp, Gi);
-    set_default_settings(settings);
 
     // Create Settings
-    // const mxArray *mxSettings = prhs[14];
-    // if (mxIsEmpty(mxSettings))
-    // {
-    //   // use defaults
-    //   std::cout << "Using Default";
-    //   set_default_settings(settings);
-    // }
-    // else
-    // {
-    //   // populate settings structure from mxArray input
-    //   copyMxStructToSettings(mxSettings, settings);
-    // }
+    const mxArray *mxSettings = prhs[14];
+    if (mxIsEmpty(mxSettings))
+    {
+      // use defaults
+      set_default_settings(settings);
+    }
+    else
+    {
+      // populate settings structure from mxArray input
+      copyMxStructToSettings(mxSettings, settings);
+    }
 
     // Setup solver.
     qocoData->solver = new QOCOSolver;
-    settings->verbose = 1;
     exitflag = qoco_setup(qocoData->solver, n, m, p, Pcsc, cvec, Acsc, bvec, Gcsc, hvec, l, nsoc, qvec, settings);
-    qoco_solve(qocoData->solver);
 
     std::cout << "n: " << n << std::endl;
     std::cout << "m: " << m << std::endl;
@@ -271,8 +267,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       qoco_free(bvec);
     if (hvec)
       qoco_free(hvec);
-    if (qvec)
-      qoco_free(qvec);
+    // if (qvec)
+    //   qoco_free(qvec);
     if (Px)
       qoco_free(Px);
     if (Pi)
@@ -326,7 +322,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     return;
   }
 
-  // SOLVE
+  // solve
   if (!strcmp("solve", cmd))
   {
     if (nlhs != 5 || nrhs != 2)
@@ -759,16 +755,16 @@ void copyMxStructToSettings(const mxArray *mxPtr, QOCOSettings *settings)
   // map the QOCO_SETTINGS fields one at a time into mxArrays
   // matlab handles everything as a double
   settings->max_iters = (QOCOInt)mxGetScalar(mxGetField(mxPtr, 0, "max_iters"));
-  settings->bisect_iters = (QOCOInt)mxGetScalar(mxGetField(mxPtr, 0, "sigma"));
-  settings->ruiz_iters = (QOCOInt)mxGetScalar(mxGetField(mxPtr, 0, "scaling"));
-  settings->iter_ref_iters = (QOCOInt)mxGetScalar(mxGetField(mxPtr, 0, "adaptive_rho"));
-  settings->kkt_static_reg = (QOCOFloat)mxGetScalar(mxGetField(mxPtr, 0, "adaptive_rho_interval"));
-  settings->kkt_dynamic_reg = (QOCOFloat)mxGetScalar(mxGetField(mxPtr, 0, "adaptive_rho_tolerance"));
-  settings->abstol = (QOCOFloat)mxGetScalar(mxGetField(mxPtr, 0, "adaptive_rho_fraction"));
-  settings->reltol = (QOCOFloat)mxGetScalar(mxGetField(mxPtr, 0, "max_iter"));
-  settings->abstol_inacc = (QOCOFloat)mxGetScalar(mxGetField(mxPtr, 0, "eps_abs"));
-  settings->reltol_inacc = (QOCOFloat)mxGetScalar(mxGetField(mxPtr, 0, "eps_rel"));
-  settings->verbose = (QOCOInt)mxGetScalar(mxGetField(mxPtr, 0, "eps_dual_inf"));
+  settings->bisect_iters = (QOCOInt)mxGetScalar(mxGetField(mxPtr, 0, "bisect_iters"));
+  settings->ruiz_iters = (QOCOInt)mxGetScalar(mxGetField(mxPtr, 0, "ruiz_iters"));
+  settings->iter_ref_iters = (QOCOInt)mxGetScalar(mxGetField(mxPtr, 0, "iter_ref_iters"));
+  settings->kkt_static_reg = (QOCOFloat)mxGetScalar(mxGetField(mxPtr, 0, "kkt_static_reg"));
+  settings->kkt_dynamic_reg = (QOCOFloat)mxGetScalar(mxGetField(mxPtr, 0, "kkt_dynamic_reg"));
+  settings->abstol = (QOCOFloat)mxGetScalar(mxGetField(mxPtr, 0, "abstol"));
+  settings->reltol = (QOCOFloat)mxGetScalar(mxGetField(mxPtr, 0, "reltol"));
+  settings->abstol_inacc = (QOCOFloat)mxGetScalar(mxGetField(mxPtr, 0, "abstol_inacc"));
+  settings->reltol_inacc = (QOCOFloat)mxGetScalar(mxGetField(mxPtr, 0, "reltol_inacc"));
+  settings->verbose = (QOCOInt)mxGetScalar(mxGetField(mxPtr, 0, "verbose"));
 }
 
 void copyUpdatedSettingsToWork(const mxArray *mxPtr, QOCOSettings *settings)
