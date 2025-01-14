@@ -325,7 +325,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   // solve
   if (!strcmp("solve", cmd))
   {
-    if (nlhs != 5 || nrhs != 2)
+    if (nlhs != 12 || nrhs != 2)
     {
       mexErrMsgTxt("Solve : wrong number of inputs / outputs");
     }
@@ -333,75 +333,35 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {
       mexErrMsgTxt("No problem data has been given.");
     }
+
     // solve the problem
-    std::cout << "ptr: " << qocoData->solver->work->data->n << std::endl;
     qoco_solve(qocoData->solver);
 
-    // // Allocate space for solution
-    // // primal variables
-    // plhs[0] = mxCreateDoubleMatrix(osqpData->work->data->n, 1, mxREAL);
-    // // dual variables
-    // plhs[1] = mxCreateDoubleMatrix(osqpData->work->data->m, 1, mxREAL);
-    // // primal infeasibility certificate
-    // plhs[2] = mxCreateDoubleMatrix(osqpData->work->data->m, 1, mxREAL);
-    // // dual infeasibility certificate
-    // plhs[3] = mxCreateDoubleMatrix(osqpData->work->data->n, 1, mxREAL);
+    // Allocate space for solution
+    // primal variables
+    plhs[0] = mxCreateDoubleMatrix(qocoData->solver->work->data->n, 1, mxREAL);
+    // slack variables
+    plhs[1] = mxCreateDoubleMatrix(qocoData->solver->work->data->m, 1, mxREAL);
+    // dual variables for equality constraints
+    plhs[2] = mxCreateDoubleMatrix(qocoData->solver->work->data->p, 1, mxREAL);
+    // dual variables for conic constraints
+    plhs[3] = mxCreateDoubleMatrix(qocoData->solver->work->data->m, 1, mxREAL);
 
-    // // copy results to mxArray outputs
-    // // assume that five outputs will always
-    // // be returned to matlab-side class wrapper
-    // if ((osqpData->work->info->status_val != OSQP_PRIMAL_INFEASIBLE) &&
-    //     (osqpData->work->info->status_val != OSQP_DUAL_INFEASIBLE))
-    // {
+    // copy results to mxArray outputs
+    castToDoubleArr(qocoData->solver->sol->x, mxGetPr(plhs[0]), qocoData->solver->work->data->n);
+    castToDoubleArr(qocoData->solver->sol->s, mxGetPr(plhs[1]), qocoData->solver->work->data->m);
+    castToDoubleArr(qocoData->solver->sol->y, mxGetPr(plhs[2]), qocoData->solver->work->data->p);
+    castToDoubleArr(qocoData->solver->sol->z, mxGetPr(plhs[3]), qocoData->solver->work->data->m);
 
-    //   // primal and dual solutions
-    //   castToDoubleArr(osqpData->work->solution->x, mxGetPr(plhs[0]), osqpData->work->data->n);
-    //   castToDoubleArr(osqpData->work->solution->y, mxGetPr(plhs[1]), osqpData->work->data->m);
-
-    //   // infeasibility certificates -> NaN values
-    //   setToNaN(mxGetPr(plhs[2]), osqpData->work->data->m);
-    //   setToNaN(mxGetPr(plhs[3]), osqpData->work->data->n);
-    // }
-    // else if (osqpData->work->info->status_val == OSQP_PRIMAL_INFEASIBLE ||
-    //          osqpData->work->info->status_val == OSQP_PRIMAL_INFEASIBLE_INACCURATE)
-    // { // primal infeasible
-
-    //   // primal and dual solutions -> NaN values
-    //   setToNaN(mxGetPr(plhs[0]), osqpData->work->data->n);
-    //   setToNaN(mxGetPr(plhs[1]), osqpData->work->data->m);
-
-    //   // primal infeasibility certificates
-    //   castToDoubleArr(osqpData->work->delta_y, mxGetPr(plhs[2]), osqpData->work->data->m);
-
-    //   // dual infeasibility certificates -> NaN values
-    //   setToNaN(mxGetPr(plhs[3]), osqpData->work->data->n);
-
-    //   // Set objective value to infinity
-    //   osqpData->work->info->obj_val = mxGetInf();
-    // }
-    // else
-    // { // dual infeasible
-
-    //   // primal and dual solutions -> NaN values
-    //   setToNaN(mxGetPr(plhs[0]), osqpData->work->data->n);
-    //   setToNaN(mxGetPr(plhs[1]), osqpData->work->data->m);
-
-    //   // primal infeasibility certificates -> NaN values
-    //   setToNaN(mxGetPr(plhs[2]), osqpData->work->data->m);
-
-    //   // dual infeasibility certificates
-    //   castToDoubleArr(osqpData->work->delta_x, mxGetPr(plhs[3]), osqpData->work->data->n);
-
-    //   // Set objective value to -infinity
-    //   osqpData->work->info->obj_val = -mxGetInf();
-    // }
-
-    // if (osqpData->work->info->status_val == OSQP_NON_CVX)
-    // {
-    //   osqpData->work->info->obj_val = mxGetNaN();
-    // }
-
-    // plhs[4] = copyInfoToMxStruct(osqpData->work->info); // Info structure
+    // copy the rest of the information.
+    plhs[4] = mxCreateDoubleScalar(qocoData->solver->sol->iters);
+    plhs[5] = mxCreateDoubleScalar(qocoData->solver->sol->setup_time_sec);
+    plhs[6] = mxCreateDoubleScalar(qocoData->solver->sol->solve_time_sec);
+    plhs[7] = mxCreateDoubleScalar(qocoData->solver->sol->obj);
+    plhs[8] = mxCreateDoubleScalar(qocoData->solver->sol->pres);
+    plhs[9] = mxCreateDoubleScalar(qocoData->solver->sol->dres);
+    plhs[10] = mxCreateDoubleScalar(qocoData->solver->sol->gap);
+    plhs[11] = mxCreateDoubleScalar(qocoData->solver->sol->status);
 
     return;
   }
@@ -528,38 +488,6 @@ void setToNaN(double *arr_out, QOCOInt len)
   }
 }
 
-// mxArray *copyInfoToMxStruct(OSQPInfo *info)
-// {
-
-//   // create mxArray with the right number of fields
-//   int nfields = sizeof(OSQP_INFO_FIELDS) / sizeof(OSQP_INFO_FIELDS[0]);
-//   mxArray *mxPtr = mxCreateStructMatrix(1, 1, nfields, OSQP_INFO_FIELDS);
-
-//   // map the OSQP_INFO fields one at a time into mxArrays
-//   // matlab all numeric values as doubles
-//   mxSetField(mxPtr, 0, "iter", mxCreateDoubleScalar(info->iter));
-//   mxSetField(mxPtr, 0, "status", mxCreateString(info->status));
-//   mxSetField(mxPtr, 0, "status_val", mxCreateDoubleScalar(info->status_val));
-//   mxSetField(mxPtr, 0, "status_polish", mxCreateDoubleScalar(info->status_polish));
-//   mxSetField(mxPtr, 0, "obj_val", mxCreateDoubleScalar(info->obj_val));
-//   mxSetField(mxPtr, 0, "pri_res", mxCreateDoubleScalar(info->pri_res));
-//   mxSetField(mxPtr, 0, "dua_res", mxCreateDoubleScalar(info->dua_res));
-
-// #ifdef PROFILING
-//   // if not profiling, these fields will be empty
-//   mxSetField(mxPtr, 0, "setup_time", mxCreateDoubleScalar(info->setup_time));
-//   mxSetField(mxPtr, 0, "solve_time", mxCreateDoubleScalar(info->solve_time));
-//   mxSetField(mxPtr, 0, "update_time", mxCreateDoubleScalar(info->update_time));
-//   mxSetField(mxPtr, 0, "polish_time", mxCreateDoubleScalar(info->polish_time));
-//   mxSetField(mxPtr, 0, "run_time", mxCreateDoubleScalar(info->run_time));
-// #endif
-
-//   mxSetField(mxPtr, 0, "rho_updates", mxCreateDoubleScalar(info->rho_updates));
-//   mxSetField(mxPtr, 0, "rho_estimate", mxCreateDoubleScalar(info->rho_estimate));
-
-//   return mxPtr;
-// }
-
 mxArray *copySettingsToMxStruct(QOCOSettings *settings)
 {
 
@@ -582,166 +510,6 @@ mxArray *copySettingsToMxStruct(QOCOSettings *settings)
 
   return mxPtr;
 }
-
-// ======================================================================
-// mxArray *copyCscMatrixToMxStruct(csc *M)
-// {
-//   int nnzM;
-//   int nfields = sizeof(CSC_FIELDS) / sizeof(CSC_FIELDS[0]);
-//   mxArray *mxPtr = mxCreateStructMatrix(1, 1, nfields, CSC_FIELDS);
-
-//   // Get number of nonzeros
-//   nnzM = M->p[M->n];
-
-//   // Create vectors
-//   mxArray *p = mxCreateDoubleMatrix((M->n) + 1, 1, mxREAL);
-//   mxArray *i = mxCreateDoubleMatrix(nnzM, 1, mxREAL);
-//   mxArray *x = mxCreateDoubleMatrix(nnzM, 1, mxREAL);
-
-//   // Populate vectors
-//   castCintToDoubleArr(M->p, mxGetPr(p), (M->n) + 1);
-//   castCintToDoubleArr(M->i, mxGetPr(i), nnzM);
-//   castToDoubleArr(M->x, mxGetPr(x), nnzM);
-
-//   // map the CSC fields one at a time into mxArrays
-//   // matlab handles everything as a double
-//   mxSetField(mxPtr, 0, "nzmax", mxCreateDoubleScalar(M->nzmax));
-//   mxSetField(mxPtr, 0, "m", mxCreateDoubleScalar(M->m));
-//   mxSetField(mxPtr, 0, "n", mxCreateDoubleScalar(M->n));
-//   mxSetField(mxPtr, 0, "p", p);
-//   mxSetField(mxPtr, 0, "i", i);
-//   mxSetField(mxPtr, 0, "x", x);
-//   mxSetField(mxPtr, 0, "nz", mxCreateDoubleScalar(M->nz));
-
-//   return mxPtr;
-// }
-
-// mxArray *copyDataToMxStruct(OSQPWorkspace *work)
-// {
-
-//   int nfields = sizeof(OSQP_DATA_FIELDS) / sizeof(OSQP_DATA_FIELDS[0]);
-//   mxArray *mxPtr = mxCreateStructMatrix(1, 1, nfields, OSQP_DATA_FIELDS);
-
-//   // Create vectors
-//   mxArray *q = mxCreateDoubleMatrix(work->data->n, 1, mxREAL);
-//   mxArray *l = mxCreateDoubleMatrix(work->data->m, 1, mxREAL);
-//   mxArray *u = mxCreateDoubleMatrix(work->data->m, 1, mxREAL);
-
-//   // Populate vectors
-//   castToDoubleArr(work->data->q, mxGetPr(q), work->data->n);
-//   castToDoubleArr(work->data->l, mxGetPr(l), work->data->m);
-//   castToDoubleArr(work->data->u, mxGetPr(u), work->data->m);
-
-//   // Create matrices
-//   mxArray *P = copyCscMatrixToMxStruct(work->data->P);
-//   mxArray *A = copyCscMatrixToMxStruct(work->data->A);
-
-//   // map the OSQP_DATA fields one at a time into mxArrays
-//   // matlab handles everything as a double
-//   mxSetField(mxPtr, 0, "n", mxCreateDoubleScalar(work->data->n));
-//   mxSetField(mxPtr, 0, "m", mxCreateDoubleScalar(work->data->m));
-//   mxSetField(mxPtr, 0, "P", P);
-//   mxSetField(mxPtr, 0, "A", A);
-//   mxSetField(mxPtr, 0, "q", q);
-//   mxSetField(mxPtr, 0, "l", l);
-//   mxSetField(mxPtr, 0, "u", u);
-
-//   return mxPtr;
-// }
-
-// mxArray *copyScalingToMxStruct(OSQPWorkspace *work)
-// {
-
-//   int n, m, nfields;
-//   mxArray *mxPtr;
-
-//   if (work->settings->scaling)
-//   { // Scaling performed
-//     n = work->data->n;
-//     m = work->data->m;
-
-//     nfields = sizeof(OSQP_SCALING_FIELDS) / sizeof(OSQP_SCALING_FIELDS[0]);
-//     mxPtr = mxCreateStructMatrix(1, 1, nfields, OSQP_SCALING_FIELDS);
-
-//     // Create vectors
-//     mxArray *D = mxCreateDoubleMatrix(n, 1, mxREAL);
-//     mxArray *E = mxCreateDoubleMatrix(m, 1, mxREAL);
-//     mxArray *Dinv = mxCreateDoubleMatrix(n, 1, mxREAL);
-//     mxArray *Einv = mxCreateDoubleMatrix(m, 1, mxREAL);
-
-//     // Populate vectors
-//     castToDoubleArr(work->scaling->D, mxGetPr(D), n);
-//     castToDoubleArr(work->scaling->E, mxGetPr(E), m);
-//     castToDoubleArr(work->scaling->Dinv, mxGetPr(Dinv), n);
-//     castToDoubleArr(work->scaling->Einv, mxGetPr(Einv), m);
-
-//     // map the SCALING fields one at a time
-//     mxSetField(mxPtr, 0, "c", mxCreateDoubleScalar(work->scaling->c));
-//     mxSetField(mxPtr, 0, "D", D);
-//     mxSetField(mxPtr, 0, "E", E);
-//     mxSetField(mxPtr, 0, "cinv", mxCreateDoubleScalar(work->scaling->cinv));
-//     mxSetField(mxPtr, 0, "Dinv", Dinv);
-//     mxSetField(mxPtr, 0, "Einv", Einv);
-//   }
-//   else
-//   {
-//     mxPtr = mxCreateDoubleMatrix(0, 0, mxREAL);
-//   }
-
-//   return mxPtr;
-// }
-
-// mxArray *copyRhoVectorsToMxStruct(OSQPWorkspace *work)
-// {
-
-//   int m, nfields;
-//   mxArray *mxPtr;
-
-//   m = work->data->m;
-
-//   nfields = sizeof(OSQP_RHO_VECTORS_FIELDS) / sizeof(OSQP_RHO_VECTORS_FIELDS[0]);
-//   mxPtr = mxCreateStructMatrix(1, 1, nfields, OSQP_RHO_VECTORS_FIELDS);
-
-//   // Create vectors
-//   mxArray *rho_vec = mxCreateDoubleMatrix(m, 1, mxREAL);
-//   mxArray *rho_inv_vec = mxCreateDoubleMatrix(m, 1, mxREAL);
-//   mxArray *constr_type = mxCreateDoubleMatrix(m, 1, mxREAL);
-
-//   // Populate vectors
-//   castToDoubleArr(work->rho_vec, mxGetPr(rho_vec), m);
-//   castToDoubleArr(work->rho_inv_vec, mxGetPr(rho_inv_vec), m);
-//   castCintToDoubleArr(work->constr_type, mxGetPr(constr_type), m);
-
-//   // map the RHO_VECTORS fields one at a time into mxArrays
-//   mxSetField(mxPtr, 0, "rho_vec", rho_vec);
-//   mxSetField(mxPtr, 0, "rho_inv_vec", rho_inv_vec);
-//   mxSetField(mxPtr, 0, "constr_type", constr_type);
-
-//   return mxPtr;
-// }
-
-// mxArray *copyWorkToMxStruct(OSQPWorkspace *work)
-// {
-
-//   int nfields = sizeof(OSQP_WORKSPACE_FIELDS) / sizeof(OSQP_WORKSPACE_FIELDS[0]);
-//   mxArray *mxPtr = mxCreateStructMatrix(1, 1, nfields, OSQP_WORKSPACE_FIELDS);
-
-//   // Create workspace substructures
-//   mxArray *rho_vectors = copyRhoVectorsToMxStruct(work);
-//   mxArray *data = copyDataToMxStruct(work);
-//   mxArray *linsys_solver = copyLinsysSolverToMxStruct(work);
-//   mxArray *scaling = copyScalingToMxStruct(work);
-//   mxArray *settings = copySettingsToMxStruct(work->settings);
-
-//   // map the WORKSPACE fields one at a time into mxArrays
-//   mxSetField(mxPtr, 0, "rho_vectors", rho_vectors);
-//   mxSetField(mxPtr, 0, "data", data);
-//   mxSetField(mxPtr, 0, "linsys_solver", linsys_solver);
-//   mxSetField(mxPtr, 0, "scaling", scaling);
-//   mxSetField(mxPtr, 0, "settings", settings);
-
-//   return mxPtr;
-// }
 
 // ======================================================================
 

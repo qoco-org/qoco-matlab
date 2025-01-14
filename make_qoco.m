@@ -6,6 +6,7 @@
 function make_qoco(varargin)
 % Matlab MEX makefile for QOCO.
 %
+
 %    MAKE_QOCO(VARARGIN) is a make file for QOCO solver. It
 %    builds QOCO and its components from source.
 %

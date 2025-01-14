@@ -20,4 +20,4 @@ h = rand(m, 1);
 solver = qoco;
 settings.verbose=1;
 solver.setup(n, m, p, P, c, A, b, G, h, l, nsoc, q, settings)
-solver.solve()
+out = solver.solve()

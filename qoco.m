@@ -141,7 +141,7 @@ classdef qoco < handle
             % SOLVE solve the SOCP
             
             nargoutchk(0,1);  %either return nothing (but still solve), or a single output structure
-            [out.x, out.y, out.prim_inf_cert, out.dual_inf_cert, out.info] = qoco_mex('solve', this.objectHandle);
+            [out.x, out.s, out.y, out.z, out.iters, out.setup_time_sec, out.solve_time_sec, out.obj, out.pres, out.dres, out.gap, out.status] = qoco_mex('solve', this.objectHandle);
             if(nargout)
                 varargout{1} = out;
             end
