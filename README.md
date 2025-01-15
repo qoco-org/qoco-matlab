@@ -16,7 +16,7 @@ Refer to [installation instructions](https://qoco-org.github.io/qoco/install/mat
 
 ## Bug reports
 
-File any issues or bug reports using the [issue tracker](https://github.com/qoco-org/qoco-python/issues).
+File any issues or bug reports using the [issue tracker](https://github.com/qoco-org/qoco-matlab/issues).
 
 ## Citing
 
