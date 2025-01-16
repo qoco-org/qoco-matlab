@@ -37,13 +37,13 @@ elseif ( nargin == 1 && ismember('-verbose', varargin) )
 else
     what = varargin{nargin};
     if(isempty(strfind(what, 'all'))        && ...
-        isempty(strfind(what, 'qoco'))      && ...
-        isempty(strfind(what, 'qoco_mex'))  && ...
-        isempty(strfind(what, 'clean'))     && ...
-        isempty(strfind(what, 'purge')))
-            fprintf('No rule to make target "%s", exiting.\n', what);
+            isempty(strfind(what, 'qoco'))      && ...
+            isempty(strfind(what, 'qoco_mex'))  && ...
+            isempty(strfind(what, 'clean'))     && ...
+            isempty(strfind(what, 'purge')))
+        fprintf('No rule to make target "%s", exiting.\n', what);
     end
-
+    
     verbose = ismember('-verbose', varargin);
 end
 
@@ -92,16 +92,16 @@ cmake_args = sprintf('%s %s%s%s', cmake_args, ...
 % end
 % Shared library loading
 if (isunix && ~ismac)
-   mex_libs = sprintf('%s %s', mex_libs, '-ldl');
+    mex_libs = sprintf('%s %s', mex_libs, '-ldl');
 end
 
 % Set OS flag for timer.
 if (isunix && ~ismac)
-   mex_libs = sprintf('%s %s', mex_libs, '-DIS_LINUX');
+    mex_libs = sprintf('%s %s', mex_libs, '-DIS_LINUX');
 end
 
-if (~isunix && ismac)
-   mex_libs = sprintf('%s %s', mex_libs, '-DIS_MACOS');
+if (ismac)
+    mex_libs = sprintf('%s %s', mex_libs, '-DIS_MACOS');
 end
 
 
@@ -150,21 +150,21 @@ inc_dir = [
 
 %% QOCO Solver
 if( any(strcmpi(what,'qoco')) || any(strcmpi(what,'all')) )
-   fprintf('Compiling QOCO solver...');
-
+    fprintf('Compiling QOCO solver...');
+    
     % Create build directory and go inside
     if exist(qoco_build_dir, 'dir')
         rmdir(qoco_build_dir, 's');
     end
     mkdir(qoco_build_dir);
     cd(qoco_build_dir);
-
+    
     % Extend path for CMake mac (via Homebrew)
     PATH = getenv('PATH');
-    if ((ismac) && (isempty(strfind(PATH, '/usr/local/bin'))))
-        setenv('PATH', [PATH ':/usr/local/bin']);
+    if ((ismac) && (isempty(strfind(PATH, 'opt/homebrew/bin'))))
+        setenv('PATH', [PATH ':/opt/homebrew/bin']);
     end
-
+    
     % Compile static library with CMake
     [status, output] = system(sprintf('%s %s ..', 'cmake', cmake_args));
     if(status)
@@ -175,7 +175,7 @@ if( any(strcmpi(what,'qoco')) || any(strcmpi(what,'all')) )
         fprintf('\n');
         disp(output);
     end
-
+    
     [status, output] = system(sprintf('%s %s', make_cmd, '--target qocostatic'));
     if (status)
         fprintf('\n');
@@ -185,28 +185,28 @@ if( any(strcmpi(what,'qoco')) || any(strcmpi(what,'all')) )
         fprintf('\n');
         disp(output);
     end
-
-
+    
+    
     % Change directory back to matlab interface
     cd(makefile_path);
-
+    
     % Copy static library to current folder
     lib_origin = fullfile(qoco_build_dir, lib_name);
     copyfile(lib_origin, lib_name);
-
+    
     % Copy libqdldl.a to current folder
     lib_origin = fullfile(qoco_build_dir, 'lib', 'qdldl', 'out', qdldl_lib_name);
     copyfile(lib_origin, qdldl_lib_name);
-
+    
     fprintf('\t\t\t\t\t\t[done]\n');
-
+    
 end
 
 %% qocomex
 if( any(strcmpi(what,'qoco_mex')) || any(strcmpi(what,'all')) )
     % Compile interface
     fprintf('Compiling and linking qocomex...');
-
+    
     % Compile command
     
     cmd = sprintf('%s %s %s %s %s qoco_mex.cpp %s', ...
@@ -215,20 +215,20 @@ if( any(strcmpi(what,'qoco_mex')) || any(strcmpi(what,'all')) )
     % Compile
     eval(cmd);
     fprintf('\t\t\t\t\t[done]\n');
-
+    
 end
 
 
 %% clean
 if( any(strcmpi(what,'clean')) || any(strcmpi(what,'purge')) )
     fprintf('Cleaning mex files and library...');
-
+    
     % Delete mex file
     mexfiles = dir(['*.', mexext]);
     for i = 1 : length(mexfiles)
         delete(mexfiles(i).name);
     end
-
+    
     % Delete static libraries
     lib_full_path = fullfile(makefile_path, lib_name);
     if( exist(lib_full_path,'file') )
@@ -238,8 +238,8 @@ if( any(strcmpi(what,'clean')) || any(strcmpi(what,'purge')) )
     if( exist(qdldl_lib_full_path,'file') )
         delete(qdldl_lib_full_path);
     end
-
-
+    
+    
     fprintf('\t\t\t[done]\n');
 end
 
@@ -247,12 +247,12 @@ end
 %% purge
 if( any(strcmpi(what,'purge')) )
     fprintf('Cleaning QOCO build directory...');
-
+    
     % Delete QOCO build directory
     if exist(qoco_build_dir, 'dir')
         rmdir(qoco_build_dir, 's');
     end
-
+    
     fprintf('\t\t[done]\n');
 end
 
