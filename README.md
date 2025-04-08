@@ -5,6 +5,7 @@
 </p>
 
 <p align="center">
+  <a href="https://arxiv.org/abs/2503.12658"><img src="http://img.shields.io/badge/arXiv-2503.12658-B31B1B.svg"/></a>
   <a href="https://opensource.org/licenses/BSD-3-Clause"><img src="https://img.shields.io/badge/License-BSD_3--Clause-blue.svg" alt="License" /></a>
 </p>
 
