@@ -13,13 +13,14 @@ This repository contains the matlab wrapper for [QOCO](https://github.com/qoco-o
 
 ## Installation and Usage
 
-Refer to [installation instructions](https://qoco-org.github.io/qoco/install/matlab.html) for instructions on building the matlab wrapper, [API](https://qoco-org.github.io/qoco/api/matlab.html#matlab-interface) for usage instructions, and [simple example](https://qoco-org.github.io/qoco/examples/simple_example.html#simple-example) for an example of solving a simple SOCP with the Matlab interface.
+Refer to [installation instructions](https://qoco-org.github.io/qoco/qoco/install/matlab.html#matlab-installation) for instructions on building the matlab wrapper, [API](https://qoco-org.github.io/qoco/api/matlab.html#matlab-interface) for usage instructions, and [simple example](https://qoco-org.github.io/qoco/examples/simple_example.html#simple-example) for an example of solving a simple SOCP with the Matlab interface.
 
 ## Bug reports
 
 File any issues or bug reports using the [issue tracker](https://github.com/qoco-org/qoco-matlab/issues).
 
 ## Citing
+
 ```
 @misc{chari2025qoco,
   title         = {QOCO: A Quadratic Objective Conic Optimizer with Custom Solver Generation},
